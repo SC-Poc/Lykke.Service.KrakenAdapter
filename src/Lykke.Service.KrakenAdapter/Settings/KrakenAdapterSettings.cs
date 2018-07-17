@@ -1,5 +1,5 @@
-﻿using JetBrains.Annotations;
-using Lykke.SettingsReader.Attributes;
+using JetBrains.Annotations;
+using Lykke.Service.KrakenAdapter.Services;
 
 namespace Lykke.Service.KrakenAdapter.Settings
 {
@@ -7,5 +7,6 @@ namespace Lykke.Service.KrakenAdapter.Settings
     public class KrakenAdapterSettings
     {
         public DbSettings Db { get; set; }
+        public KrakenOrderBookProcessingSettings OrderBooks { get; set; }
     }
 }

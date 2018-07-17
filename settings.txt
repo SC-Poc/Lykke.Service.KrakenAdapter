@@ -1,0 +1,35 @@
+{
+    "KrakenAdapterService": {
+        "Db": {
+            "LogsConnString": "${KrakenAdapter-LogsConnString}:[AzureTableStorage]"
+        },
+        "OrderBooks": {
+            "OrderBooks": {
+                "Durable": ${KrakenAdapterService-OrderBooks-OrderBooks-Durable},
+                "Enabled": ${KrakenAdapterService-OrderBooks-OrderBooks-Enabled},
+                "ConnectionString": "${RawPriceRabbitMq}:[RabbitMq]",
+                "Exchanger": "lykke.exchangeconnector.orderBooks.kraken"
+            },
+            "TickPrices": {
+                "Durable": ${KrakenAdapterService-OrderBooks-TickPrices-Durable},
+                "Enabled": ${KrakenAdapterService-OrderBooks-TickPrices-Enabled},
+                "ConnectionString": "${RawPriceRabbitMq}:[RabbitMq]",
+                "Exchanger": "lykke.exchangeconnector.tickPrices.kraken"
+            },
+            "TimeoutBetweenQueries": "${KrakenAdapterService-OrderBooks-TimeoutBetweenQueries}",
+            "OrderBookDepth": ${KrakenAdapterService-OrderBooks-OrderBookDepth},
+            "MaxEventPerSecondByInstrument": ${KrakenAdapterService-OrderBooks-MaxEventPerSecondByInstrument},
+            "AllowedAnomalisticAssets": ${KrakenAdapterService-OrderBooks-AllowedAnomalisticAssets}:[JsonArray]
+        }
+    },
+    "SlackNotifications": {
+        "AzureQueue": {
+            "ConnectionString": "${SlackNotificationsConnString}:[AzureTableStorage]",
+            "QueueName": "slack-notifications"
+        },
+        "ThrottlingLimitSeconds": ${SlackNotificationsThrottlingLimit}
+    },
+    "MonitoringServiceClient": {
+        "MonitoringServiceUrl": "${MonitoringServiceUrl}"
+    }
+}

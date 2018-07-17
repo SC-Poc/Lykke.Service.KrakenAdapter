@@ -22,14 +22,17 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lykke.Sdk" Version="3.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
+    <PackageReference Include="Lykke.Common.ExchangeAdapter.Server" Version="3.2.9" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lykke.Service.KrakenAdapter.AzureRepositories\Lykke.Service.KrakenAdapter.AzureRepositories.csproj" />
     <ProjectReference Include="..\Lykke.Service.KrakenAdapter.Core\Lykke.Service.KrakenAdapter.Core.csproj" />
     <ProjectReference Include="..\Lykke.Service.KrakenAdapter.Services\Lykke.Service.KrakenAdapter.Services.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Swashbuckle.AspNetCore.Swagger, Version=1.1.0.0, Culture=neutral, PublicKeyToken=62657d7474907593">
+      <HintPath>..\..\..\..\..\.nuget\packages\swashbuckle.aspnetcore.swagger\1.1.0\lib\netstandard1.6\Swashbuckle.AspNetCore.Swagger.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
     <ItemGroup>

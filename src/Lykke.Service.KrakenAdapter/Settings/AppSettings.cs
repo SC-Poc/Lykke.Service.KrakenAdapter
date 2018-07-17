@@ -1,5 +1,6 @@
 ﻿using JetBrains.Annotations;
 using Lykke.Sdk.Settings;
+using Lykke.Service.KrakenAdapter.Services;
 
 namespace Lykke.Service.KrakenAdapter.Settings
 {

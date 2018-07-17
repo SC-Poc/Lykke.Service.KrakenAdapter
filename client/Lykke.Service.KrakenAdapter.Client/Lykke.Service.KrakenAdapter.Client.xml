@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Lykke.Service.KrakenAdapter.Client</name>
+    </assembly>
+    <members>
+        <member name="M:Lykke.Service.KrakenAdapter.Client.AutofacExtension.RegisterKrakenAdapterClient(Autofac.ContainerBuilder,Lykke.Service.KrakenAdapter.Client.KrakenAdapterServiceClientSettings,System.Func{Lykke.HttpClientGenerator.HttpClientGeneratorBuilder,Lykke.HttpClientGenerator.HttpClientGeneratorBuilder})">
+            <summary>
+            Registers <see cref="T:Lykke.Service.KrakenAdapter.Client.IKrakenAdapterClient"/> in Autofac container using <see cref="T:Lykke.Service.KrakenAdapter.Client.KrakenAdapterServiceClientSettings"/>.
+            </summary>
+            <param name="builder">Autofac container builder.</param>
+            <param name="settings">KrakenAdapter client settings.</param>
+            <param name="builderConfigure">Optional <see cref="T:Lykke.HttpClientGenerator.HttpClientGeneratorBuilder"/> configure handler.</param>
+        </member>
+        <member name="T:Lykke.Service.KrakenAdapter.Client.IKrakenAdapterClient">
+            <summary>
+            KrakenAdapter client interface.
+            </summary>
+        </member>
+        <member name="T:Lykke.Service.KrakenAdapter.Client.KrakenAdapterServiceClientSettings">
+            <summary>
+            KrakenAdapter client settings.
+            </summary>
+        </member>
+        <member name="P:Lykke.Service.KrakenAdapter.Client.KrakenAdapterServiceClientSettings.ServiceUrl">
+            <summary>Service url.</summary>
+        </member>
+    </members>
+</doc>
