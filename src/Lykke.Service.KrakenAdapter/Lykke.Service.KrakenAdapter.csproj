@@ -29,11 +29,6 @@
     <ProjectReference Include="..\Lykke.Service.KrakenAdapter.Core\Lykke.Service.KrakenAdapter.Core.csproj" />
     <ProjectReference Include="..\Lykke.Service.KrakenAdapter.Services\Lykke.Service.KrakenAdapter.Services.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Swashbuckle.AspNetCore.Swagger, Version=1.1.0.0, Culture=neutral, PublicKeyToken=62657d7474907593">
-      <HintPath>..\..\..\..\..\.nuget\packages\swashbuckle.aspnetcore.swagger\1.1.0\lib\netstandard1.6\Swashbuckle.AspNetCore.Swagger.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
     <ItemGroup>
       <DocFile Include="$(OutputPath)$(AssemblyName).xml" />
