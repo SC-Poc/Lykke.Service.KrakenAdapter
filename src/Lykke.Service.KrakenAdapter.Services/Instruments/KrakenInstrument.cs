@@ -8,7 +8,7 @@ namespace Lykke.Service.KrakenAdapter.Services.Instruments
 
         public KrakenInstrument(string value)
         {
-            Value = value;
+            Value = value.ToUpperInvariant();
         }
     }
 

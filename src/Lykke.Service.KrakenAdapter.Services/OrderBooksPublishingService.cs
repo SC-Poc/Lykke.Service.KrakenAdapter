@@ -11,6 +11,7 @@ using Lykke.Common.ExchangeAdapter;
 using Lykke.Common.ExchangeAdapter.Contracts;
 using Lykke.Common.ExchangeAdapter.Server;
 using Lykke.Common.ExchangeAdapter.Server.Settings;
+using Lykke.Common.ExchangeAdapter.Tools.ObservableWebSocket;
 using Lykke.Common.Log;
 using Lykke.Service.KrakenAdapter.Services.Instruments;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +27,7 @@ namespace Lykke.Service.KrakenAdapter.Services
 
         private IDisposable _disposable;
 
-        private readonly RestClient _restClient = new RestClient();
+        private readonly RestClient _restClient;
         private InstrumentsConverter _converter;
         private const int OrderBookDepth = 100;
         private const string KrakenSourceName = "kraken";
@@ -38,6 +39,7 @@ namespace Lykke.Service.KrakenAdapter.Services
             KrakenOrderBookProcessingSettings settings)
         {
             _logFactory = logFactory;
+           _restClient = new RestClient(_logFactory);
             _settings = settings;
             _log = _logFactory.CreateLog(this);
         }
@@ -61,8 +63,8 @@ namespace Lykke.Service.KrakenAdapter.Services
                 .Select(i => PullOrderBooks(i, _settings.TimeoutBetweenQueries))
                 .Merge();
 
-            return orderBooks.FromRawOrderBooks(
-                _converter.LykkeInstruments.Select(x => x.Value).ToArray(),
+            return OrderBooksSession.FromRawOrderBooks(
+                orderBooks,
                 _settings,
                 _logFactory);
         }

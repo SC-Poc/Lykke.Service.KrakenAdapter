@@ -1,21 +1,46 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Lykke.Common.ExchangeAdapter.Contracts;
+using Lykke.Common.ExchangeAdapter.Server;
+using Lykke.Common.ExchangeAdapter.Server.Fails;
+using Lykke.Common.Log;
 using Lykke.Service.KrakenAdapter.Services.Instruments;
+using Lykke.Service.KrakenAdapter.Services.KrakenContracts;
+using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Lykke.Service.KrakenAdapter.Services
 {
     public sealed class RestClient
     {
-        private static readonly HttpClient Client = new HttpClient()
+        private readonly HttpClient _client;
+
+        public RestClient(ILogFactory lf, ApiCredentials credentials)
         {
-            BaseAddress = new Uri("https://api.kraken.com")
-        };
+            var log = lf.CreateLog(this);
+
+            var loggingHandler = new LoggingHandler(
+                log,
+                new HttpClientHandler(),
+                "/0/public/Depth");
+
+            var auth = new AuthenticationHandler(credentials, loggingHandler);
+
+            _client = new HttpClient(auth)
+            {
+                BaseAddress = new Uri("https://api.kraken.com")
+            };
+        }
+
+        public RestClient(ILogFactory logFactory) : this(logFactory, null)
+        {
+        }
 
         public async Task<IReadOnlyDictionary<string, KrakenInstrumentDefinition>> GetInstruments()
         {
@@ -29,9 +54,19 @@ namespace Lykke.Service.KrakenAdapter.Services
             return dict;
         }
 
-        private static async Task<T> Get<T>(string path)
+        private async Task<T> Get<T>(string path)
         {
-            using (var msg = await Client.GetAsync(path))
+            using (var msg = await _client.GetAsync(path))
+            {
+                return await ReadAsKrakenResponse<T>(msg);
+            }
+        }
+
+        private async Task<T> Post<T>(string path, IEnumerable<KeyValuePair<string, string>> parameters)
+        {
+            var content = new FormUrlEncodedContent(parameters);
+
+            using (var msg = await _client.PostAsync(path, content))
             {
                 return await ReadAsKrakenResponse<T>(msg);
             }
@@ -51,12 +86,29 @@ namespace Lykke.Service.KrakenAdapter.Services
             msg.EnsureSuccessStatusCode();
 
             var response = await msg.Content.ReadAsAsync<KrakenResponse<T>>();
-            if (response.Errors.Any())
+
+            var known = new Dictionary<string, Func<string, Exception>>
             {
-                throw new KrakenApiException(response.Errors);
+                {"EOrder:Unknown order", s => new OrderNotFoundException(s)},
+                {"EGeneral:Invalid arguments:volume", s => new VolumeTooSmallException(s)},
+                {"EGeneral:Invalid arguments:price", s => new InvalidOrderPriceException(s)},
+            };
+
+            if (!response.Errors.Any())
+            {
+                return response.Result;
             }
 
-            return response.Result;
+            foreach (var err in known)
+            {
+                if (response.Errors.Contains(err.Key))
+                {
+                    throw err.Value(err.Key);
+                }
+            }
+
+            throw new KrakenApiException(response.Errors);
+
         }
 
         public sealed class AsksAndBids
@@ -73,13 +125,71 @@ namespace Lykke.Service.KrakenAdapter.Services
             return Get<IReadOnlyDictionary<string, AsksAndBids>>(
                 $"/0/public/Depth?pair={WebUtility.UrlEncode(instrument.Value)}&depth={depth}");
         }
-    }
 
-    public class KrakenApiException : Exception
-    {
-        public KrakenApiException(IEnumerable<string> errors)
-            : base($"Error calling kraken api: {string.Join("; ", errors)}")
+        public async Task<LimitOrderCreated> CreateLimitOrder(
+            KrakenInstrument instrument,
+            TradeType tradeType,
+            decimal price,
+            decimal volume)
         {
+            var p = new Dictionary<string, string>
+            {
+                {"pair", instrument.Value},
+                {"type", TradeTypeToString(tradeType)},
+                {"ordertype", "limit"},
+                {"price", price.ToString(CultureInfo.InvariantCulture)},
+                {"volume", volume.ToString(CultureInfo.InvariantCulture)},
+            };
+
+            return await Post<LimitOrderCreated>("/0/private/AddOrder", p);
+        }
+
+        public async Task<Dictionary<string, KrakenContracts.OrderInfo>> GetOpenOrders()
+        {
+            var orders = await Post<Dictionary<string, Dictionary<string, KrakenContracts.OrderInfo>>>(
+                "/0/private/OpenOrders");
+
+            return orders["open"];
+        }
+
+        public async Task<JToken> GetTradesHistory()
+        {
+            return await Post<JToken>("/0/private/TradesHistory");
+        }
+
+        private Task<T> Post<T>(string path)
+        {
+            return Post<T>(path, new KeyValuePair<string, string>[0]);
+        }
+
+        private string TradeTypeToString(TradeType tradeType)
+        {
+            if (tradeType == TradeType.Buy) return "buy";
+            if (tradeType == TradeType.Sell) return "sell";
+            throw new ArgumentOutOfRangeException(nameof(tradeType), $"Not supported (only buy/sell yet)");
+        }
+
+        public async Task<OrdersCanceled> CancelOpenOrder(string txid)
+        {
+            var request = new Dictionary<string, string> {{"txid", txid}};
+
+            return await Post<OrdersCanceled>("/0/private/CancelOrder", request);
+        }
+
+        public async Task<Dictionary<string, decimal>> GetBalances()
+        {
+            return await Post<Dictionary<string, decimal>>("/0/private/Balance");
+
+        }
+
+        public Task<Dictionary<string, OrderInfo>> QueryOrders(string orderId)
+        {
+            var request = new Dictionary<string, string>
+            {
+                {"txid", orderId},
+                {"trades", "true"}
+            };
+            return Post<Dictionary<string, OrderInfo>>("/0/private/QueryOrders", request);
         }
     }
 }
