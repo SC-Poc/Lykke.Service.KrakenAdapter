@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Log;
@@ -156,9 +157,8 @@ namespace Lykke.Service.KrakenAdapter.Controllers
             {
                 Wallets = balances.Select(x => new WalletBalanceModel
                     {
-                        Asset = converter.FromKrakenInstrument(new KrakenInstrument(x.Key)).Value,
-                        Balance = x.Value,
-                        Reserved = 0
+                        Asset = converter.FromKrakenCurrency(x.Key),
+                        Balance = x.Value
                     })
                     .ToArray()
             };

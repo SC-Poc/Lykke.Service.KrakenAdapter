@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -22,12 +23,17 @@ namespace Lykke.Service.KrakenAdapter.Services
             }
             catch (KrakenApiException ex)
             {
-                using (var body = new MemoryStream(Encoding.UTF8.GetBytes(ex.Message)))
-                {
-                    httpContext.Response.ContentType = "text/plain";
-                    httpContext.Response.StatusCode = 500;
-                    body.CopyTo(httpContext.Response.Body);
-                }
+                Respond(httpContext, HttpStatusCode.InternalServerError, ex.Message);
+            }
+        }
+
+        private static void Respond(HttpContext httpContext, HttpStatusCode status, string message)
+        {
+            using (var body = new MemoryStream(Encoding.UTF8.GetBytes(message)))
+            {
+                httpContext.Response.ContentType = "text/plain";
+                httpContext.Response.StatusCode = (int)status;
+                body.CopyTo(httpContext.Response.Body);
             }
         }
     }

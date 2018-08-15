@@ -19,14 +19,14 @@ namespace Lykke.Service.KrakenAdapter.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<OrderBooksPublishingService>()
-                .WithParameter(
-                    new TypedParameter(
-                        typeof(KrakenOrderBookProcessingSettings),
-                        _appSettings.CurrentValue.KrakenAdapterService.OrderBooks))
-                .AsSelf()
-                .As<IHostedService>()
-                .SingleInstance();
+//            builder.RegisterType<OrderBooksPublishingService>()
+//                .WithParameter(
+//                    new TypedParameter(
+//                        typeof(KrakenOrderBookProcessingSettings),
+//                        _appSettings.CurrentValue.KrakenAdapterService.OrderBooks))
+//                .AsSelf()
+//                .As<IHostedService>()
+//                .SingleInstance();
 
             builder.RegisterInstance(_appSettings.CurrentValue.KrakenAdapterService.TradingApi).AsSelf();
 

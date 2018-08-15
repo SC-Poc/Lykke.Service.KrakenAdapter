@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Lykke.Common.ExchangeAdapter.Server.Fails;
 
 namespace Lykke.Service.KrakenAdapter.Services.Instruments
 {
@@ -57,11 +58,16 @@ namespace Lykke.Service.KrakenAdapter.Services.Instruments
                                        $"{Rename(Simplify(definition.Quote))}");
         }
 
+        public string FromKrakenCurrency(string krakenCurrency)
+        {
+            return Rename(Simplify(krakenCurrency));
+        }
+
         public KrakenInstrument FromLykkeInstrument(LykkeInstrument lykke)
         {
             if (!_byLykkeInstrument.TryGetValue(lykke, out var ki))
             {
-                throw new ArgumentException($"Unknown lykke instrument: {lykke.Value}", nameof(lykke));
+                throw new InvalidInstrumentException($"Unknown lykke instrument: {lykke.Value}");
             }
             return ki;
         }
@@ -87,7 +93,7 @@ namespace Lykke.Service.KrakenAdapter.Services.Instruments
         {
             if (!_byKrakenInstrument.TryGetValue(kraken, out var li))
             {
-                throw new ArgumentException($"Unknown instrument: {kraken.Value}", nameof(kraken));
+                throw new InvalidInstrumentException($"Unknown instrument: {kraken.Value}");
             }
 
             return li;

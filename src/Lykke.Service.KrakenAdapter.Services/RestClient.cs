@@ -179,7 +179,11 @@ namespace Lykke.Service.KrakenAdapter.Services
         public async Task<Dictionary<string, decimal>> GetBalances()
         {
             return await Post<Dictionary<string, decimal>>("/0/private/Balance");
+        }
 
+        public async Task<Dictionary<string, decimal>> GetTradeBalances()
+        {
+            return await Post<Dictionary<string, decimal>>("0/private/TradeBalance");
         }
 
         public Task<Dictionary<string, OrderInfo>> QueryOrders(string orderId)
