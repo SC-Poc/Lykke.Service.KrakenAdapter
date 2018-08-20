@@ -92,6 +92,8 @@ namespace Lykke.Service.KrakenAdapter.Services
                 {"EOrder:Unknown order", s => new OrderNotFoundException(s)},
                 {"EGeneral:Invalid arguments:volume", s => new VolumeTooSmallException(s)},
                 {"EGeneral:Invalid arguments:price", s => new InvalidOrderPriceException(s)},
+                {"EOrder:Insufficient funds", s => new InsufficientBalanceException(s)},
+                {"EOrder:Invalid price", s => new InvalidOrderPriceException(s)},
             };
 
             if (!response.Errors.Any())
