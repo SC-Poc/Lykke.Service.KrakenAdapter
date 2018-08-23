@@ -103,7 +103,9 @@ namespace Lykke.Service.KrakenAdapter.Services
 
             foreach (var err in known)
             {
-                if (response.Errors.Contains(err.Key))
+                var candidate = response.Errors.FirstOrDefault(x => x.StartsWith(err.Key));
+
+                if (candidate != null)
                 {
                     throw err.Value(err.Key);
                 }
