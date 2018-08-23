@@ -175,5 +175,15 @@ namespace Lykke.Service.KrakenAdapter.Controllers
 
             return order;
         }
+
+        public override Task<OrderIdResponse> ReplaceLimitOrderAsync([FromBody]ReplaceLimitOrderRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OrderIdResponse> CreateMarketOrderAsync([FromBody]MarketOrderRequest request)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
