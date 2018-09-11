@@ -1,0 +1,48 @@
+KrakenAdapterService:
+  Db:
+    LogsConnString:
+      settings-key: KrakenAdapter-LogsConnString
+      types: [ AzureTableStorage ]
+  OrderBooks:
+    OrderBooks:
+      Durable:
+        settings-key: KrakenAdapterService-OrderBooks-OrderBooks-Durable
+      Enabled:
+        settings-key: KrakenAdapterService-OrderBooks-OrderBooks-Enabled
+      ConnectionString:
+        settings-key: RawPriceRabbitMq
+        types: [ RabbitMq ]
+      Exchanger: lykke.exchangeconnector.orderBooks.kraken
+    TickPrices:
+      Durable:
+        settings-key: KrakenAdapterService-OrderBooks-TickPrices-Durable
+      Enabled:
+        settings-key: KrakenAdapterService-OrderBooks-TickPrices-Enabled
+      ConnectionString:
+        settings-key: RawPriceRabbitMq
+        types: [ RabbitMq ]
+      Exchanger: lykke.exchangeconnector.tickPrices.kraken
+    TimeoutBetweenQueries:
+      settings-key: KrakenAdapterService-OrderBooks-TimeoutBetweenQueries
+    OrderBookDepth:
+      settings-key: KrakenAdapterService-OrderBooks-OrderBookDepth
+    MaxEventPerSecondByInstrument:
+      settings-key: KrakenAdapterService-OrderBooks-MaxEventPerSecondByInstrument
+    AllowedAnomalisticAssets:
+      settings-key: KrakenAdapterService-OrderBooks-AllowedAnomalisticAssets
+      types: [ JsonArray ]
+  TradingApi:
+    Credentials:
+      settings-key: KrakenAdapterService-TradingApi-Credentials
+      types: [ JsonArray ]
+SlackNotifications:
+  AzureQueue:
+    ConnectionString:
+      settings-key: SlackNotificationsConnString
+      types: [ AzureTableStorage ]
+    QueueName: slack-notifications
+  ThrottlingLimitSeconds:
+    settings-key: SlackNotificationsThrottlingLimit
+MonitoringServiceClient:
+  MonitoringServiceUrl:
+    settings-key: MonitoringServiceUrl

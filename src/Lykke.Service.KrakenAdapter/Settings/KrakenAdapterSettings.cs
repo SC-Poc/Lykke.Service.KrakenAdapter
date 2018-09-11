@@ -8,5 +8,6 @@ namespace Lykke.Service.KrakenAdapter.Settings
     {
         public DbSettings Db { get; set; }
         public KrakenOrderBookProcessingSettings OrderBooks { get; set; }
+        public TradingApiSettings TradingApi { get; set; }
     }
 }

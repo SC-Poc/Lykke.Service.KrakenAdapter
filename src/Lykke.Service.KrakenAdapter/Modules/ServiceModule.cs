@@ -28,6 +28,13 @@ namespace Lykke.Service.KrakenAdapter.Modules
                 .As<IHostedService>()
                 .SingleInstance();
 
+            builder.RegisterInstance(_appSettings.CurrentValue.KrakenAdapterService.TradingApi).AsSelf();
+
+            builder.RegisterType<KrakenInformationService>()
+                .AsSelf()
+                .As<IHostedService>()
+                .SingleInstance();
+
             // Do not register entire settings in container, pass necessary settings to services which requires them
         }
     }
