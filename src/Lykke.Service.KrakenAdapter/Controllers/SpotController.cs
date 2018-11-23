@@ -21,69 +21,96 @@ namespace Lykke.Service.KrakenAdapter.Controllers
         private readonly ILog _log;
 
         public SpotController(
-            ILogFactory lf,
+            ILogFactory logFactory,
             KrakenInformationService informationService)
         {
-            _log = lf.CreateLog(this);
+            _log = logFactory.CreateLog(this);
             _informationService = informationService;
         }
 
         public override async Task<OrderIdResponse> CreateLimitOrderAsync([FromBody] LimitOrderRequest request)
         {
-            var converter = await _informationService.LatestConverter;
+            InstrumentsConverter instrumentsConverter = await _informationService.LatestConverter;
 
             var result = await Api.CreateLimitOrder(
-                converter.FromLykkeInstrument(new LykkeInstrument(request.Instrument)),
+                instrumentsConverter.FromLykkeInstrument(new LykkeInstrument(request.Instrument)),
                 request.TradeType,
                 request.Price,
                 request.Volume);
 
             if (result.Txid.Length != 1)
-            {
                 _log.Warning($"Expected single txid, got: [{string.Join("; ", result.Txid)}]");
-            }
 
             return new OrderIdResponse {OrderId = result.Txid[0]};
         }
 
-        public override async Task<CancelLimitOrderResponse> CancelLimitOrderAsync(CancelLimitOrderRequest request)
+        public override async Task<CancelLimitOrderResponse> CancelLimitOrderAsync(
+            [FromBody] CancelLimitOrderRequest request)
         {
-            var response = await Api.CancelOpenOrder(request.OrderId);
+            OrdersCanceled response = await Api.CancelOpenOrder(request.OrderId);
 
             if (response.Count != 1)
-            {
                 _log.Warning($"Expected single order canceled, but count = {response.Count}");
-            }
 
             return new CancelLimitOrderResponse {OrderId = request.OrderId};
         }
 
         public override async Task<GetLimitOrdersResponse> GetLimitOrdersAsync()
         {
-            var orders = await Api.GetOpenOrders();
-            var converter = await _informationService.LatestConverter;
+            IReadOnlyDictionary<string, OrderInfo> orders = await Api.GetOpenOrders();
+            
+            InstrumentsConverter instrumentsConverter = await _informationService.LatestConverter;
 
             return new GetLimitOrdersResponse
             {
-                Orders = orders.Select(x => GetLimitFromExchangeOrder(x.Key, x.Value, converter))
+                Orders = orders.Select(x => GetLimitFromExchangeOrder(x.Key, x.Value, instrumentsConverter))
                     .Where(x => x != null)
                     .ToArray()
             };
         }
 
-        private OrderModel GetLimitFromExchangeOrder(
-            string txid,
-            OrderInfo order,
-            InstrumentsConverter converter)
+        public override async Task<GetWalletsResponse> GetWalletBalancesAsync()
         {
-            if (!TryConvert(order.Descr.Type, out var krakenTradeType)) return null;
+            IReadOnlyDictionary<string, decimal> balances = await Api.GetBalances();
 
-            if (!TryGetOrderStatus(order, out var executionStatus)) return null;
+            InstrumentsConverter instrumentsConverter = await _informationService.LatestConverter;
 
-            if (order.Descr.Ordertype != KrakenOrderType.Limit)
+            return new GetWalletsResponse
             {
+                Wallets = balances.Select(x => new WalletBalanceModel
+                    {
+                        Asset = instrumentsConverter.FromKrakenCurrency(x.Key),
+                        Balance = x.Value
+                    })
+                    .ToArray()
+            };
+        }
+
+        public override async Task<OrderModel> LimitOrderStatusAsync(string orderId)
+        {
+            IReadOnlyDictionary<string, OrderInfo> orders = await Api.QueryOrders(orderId);
+
+            if (!orders.TryGetValue(orderId, out OrderInfo orderInfo))
+                throw new OrderNotFoundException();
+            
+            OrderModel order = GetLimitFromExchangeOrder(orderId, orderInfo, await _informationService.LatestConverter);
+
+            if (order == null)
+                throw new OrderNotFoundException();
+
+            return order;
+        }
+
+        private OrderModel GetLimitFromExchangeOrder(string txid, OrderInfo order, InstrumentsConverter converter)
+        {
+            if (!TryConvert(order.Descr.Type, out TradeType krakenTradeType))
                 return null;
-            }
+
+            if (!TryGetOrderStatus(order, out OrderStatus executionStatus))
+                return null;
+
+            if (order.Descr.OrderType != KrakenOrderType.Limit)
+                return null;
 
             return new OrderModel
             {
@@ -100,9 +127,11 @@ namespace Lykke.Service.KrakenAdapter.Controllers
             };
         }
 
-        private bool TryGetOrderStatus(OrderInfo order, out OrderStatus tradeType)
+        private static bool TryGetOrderStatus(OrderInfo order, out OrderStatus tradeType)
         {
-            var canceledStatus = order.ExecutedVolume == 0 ? OrderStatus.Canceled : OrderStatus.Fill;
+            OrderStatus canceledStatus = order.ExecutedVolume == 0
+                ? OrderStatus.Canceled
+                : OrderStatus.Fill;
 
             switch (order.Status)
             {
@@ -145,45 +174,6 @@ namespace Lykke.Service.KrakenAdapter.Controllers
             }
 
             return true;
-        }
-
-        public override async Task<GetWalletsResponse> GetWalletBalancesAsync()
-        {
-            var balances = await Api.GetBalances();
-
-            var converter = await _informationService.LatestConverter;
-
-            return new GetWalletsResponse
-            {
-                Wallets = balances.Select(x => new WalletBalanceModel
-                    {
-                        Asset = converter.FromKrakenCurrency(x.Key),
-                        Balance = x.Value
-                    })
-                    .ToArray()
-            };
-        }
-
-        public override async Task<OrderModel> LimitOrderStatusAsync(string orderId)
-        {
-            var orders = await Api.QueryOrders(orderId);
-
-            if (!orders.TryGetValue(orderId, out var oi)) throw new OrderNotFoundException();
-            var order = GetLimitFromExchangeOrder(orderId, oi, await _informationService.LatestConverter);
-
-            if (order == null) throw new OrderNotFoundException();
-
-            return order;
-        }
-
-        public override Task<OrderIdResponse> ReplaceLimitOrderAsync([FromBody]ReplaceLimitOrderRequest request)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OrderIdResponse> CreateMarketOrderAsync([FromBody]MarketOrderRequest request)
-        {
-            throw new NotImplementedException();
         }
     }
 }

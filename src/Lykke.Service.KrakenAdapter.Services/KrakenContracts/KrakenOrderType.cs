@@ -5,16 +5,20 @@ namespace Lykke.Service.KrakenAdapter.Services.KrakenContracts
     public enum KrakenOrderType
     {
         // market
-        [EnumMember(Value = "market")] Market,
+        [EnumMember(Value = "market")]
+        Market,
 
         // price = limit price
-        [EnumMember(Value = "limit")] Limit,
+        [EnumMember(Value = "limit")]
+        Limit,
 
         // price = stop loss price
-        [EnumMember(Value = "stop-loss")] StopLoss,
+        [EnumMember(Value = "stop-loss")]
+        StopLoss,
 
         // price = take profit price
-        [EnumMember(Value = "take-profit")] TakeProfit,
+        [EnumMember(Value = "take-profit")]
+        TakeProfit,
 
         // price = stop loss price, price2 = take profit price
         [EnumMember(Value = "stop-loss-profit")]
@@ -33,7 +37,8 @@ namespace Lykke.Service.KrakenAdapter.Services.KrakenContracts
         TakeProfitLimit,
 
         // price = trailing stop offset
-        [EnumMember(Value = "trailing-stop")] TrailingStop,
+        [EnumMember(Value = "trailing-stop")]
+        TrailingStop,
 
         // price = trailing stop offset, price2 = triggered limit offset
         [EnumMember(Value = "trailing-stop-limit")]

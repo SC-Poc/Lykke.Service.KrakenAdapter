@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Lykke.Service.KrakenAdapter.Services
+namespace Lykke.Service.KrakenAdapter.Services.KrakenContracts
 {
     public sealed class OrdersCanceled
     {

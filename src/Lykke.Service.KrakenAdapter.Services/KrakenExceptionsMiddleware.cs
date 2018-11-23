@@ -10,7 +10,7 @@ namespace Lykke.Service.KrakenAdapter.Services
 {
     public static class KrakenExceptionsMiddleware
     {
-        public static void UseForwardBitstampExceptionsMiddleware(this IApplicationBuilder app)
+        public static void UseForwardKrakenExceptionsMiddleware(this IApplicationBuilder app)
         {
             app.Use(SetStatusOnError);
         }
