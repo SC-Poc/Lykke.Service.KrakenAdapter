@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
-using Autofac;
-using Lykke.Common.ExchangeAdapter.Server.Settings;
+﻿using Autofac;
+using JetBrains.Annotations;
 using Lykke.Service.KrakenAdapter.Services;
 using Lykke.Service.KrakenAdapter.Settings;
 using Lykke.SettingsReader;
 using Microsoft.Extensions.Hosting;
 
 namespace Lykke.Service.KrakenAdapter.Modules
-{    
+{
+    [UsedImplicitly]
     public class ServiceModule : Module
     {
         private readonly IReloadingManager<AppSettings> _appSettings;
@@ -28,14 +28,13 @@ namespace Lykke.Service.KrakenAdapter.Modules
                 .As<IHostedService>()
                 .SingleInstance();
 
-            builder.RegisterInstance(_appSettings.CurrentValue.KrakenAdapterService.TradingApi).AsSelf();
+            builder.RegisterInstance(_appSettings.CurrentValue.KrakenAdapterService.TradingApi)
+                .AsSelf();
 
             builder.RegisterType<KrakenInformationService>()
                 .AsSelf()
                 .As<IHostedService>()
                 .SingleInstance();
-
-            // Do not register entire settings in container, pass necessary settings to services which requires them
         }
     }
 }

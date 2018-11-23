@@ -1,4 +1,3 @@
-using MongoDB.Bson.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -15,7 +14,7 @@ namespace Lykke.Service.KrakenAdapter.Services.KrakenContracts
 
         [JsonProperty("ordertype")]
         [JsonConverter(typeof(StringEnumConverter))]
-        public KrakenOrderType Ordertype { get; set; }
+        public KrakenOrderType OrderType { get; set; }
 
         [JsonProperty("price")]
         public decimal Price { get; set; }

@@ -1,28 +1,23 @@
 ﻿using System;
 using System.Linq;
-using JetBrains.Annotations;
 using Lykke.Common.ExchangeAdapter.Server;
 using Lykke.Common.Log;
-using Lykke.Logs;
 using Lykke.Sdk;
 using Lykke.Service.KrakenAdapter.Services;
 using Lykke.Service.KrakenAdapter.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using MoreLinq;
-using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Lykke.Service.KrakenAdapter
 {
-    [UsedImplicitly]
     public class Startup
     {
         private readonly LykkeSwaggerOptions _swaggerOptions = new LykkeSwaggerOptions
         {
-            ApiTitle = "KrakenAdapterService"
+            ApiTitle = "KrakenAdapterService API",
+            ApiVersion = "v1"
         };
 
-        [UsedImplicitly]
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             return services.BuildServiceProvider<AppSettings>(options =>
@@ -39,7 +34,6 @@ namespace Lykke.Service.KrakenAdapter
             });
         }
 
-        [UsedImplicitly]
         public void Configure(IApplicationBuilder app)
         {
             var settings = app.ApplicationServices.GetService<TradingApiSettings>();
@@ -51,23 +45,24 @@ namespace Lykke.Service.KrakenAdapter
             app.UseLykkeConfiguration(options =>
             {
                 options.SwaggerOptions = _swaggerOptions;
-                
+
                 options.WithMiddleware = x =>
                 {
                     x.UseAuthenticationMiddleware(token => new RestClient(logFactory, GetCredentials(settings, token)));
                     x.UseHandleBusinessExceptionsMiddleware();
-                    x.UseForwardBitstampExceptionsMiddleware();
+                    x.UseForwardKrakenExceptionsMiddleware();
                 };
             });
         }
 
-        private ApiCredentials GetCredentials(TradingApiSettings settings, string token)
+        private static ApiCredentials GetCredentials(TradingApiSettings settings, string token)
         {
-            var s = settings.Credentials.FirstOrDefault(x => x.InternalApiKey == token);
+            Credentials credentials = settings.Credentials.FirstOrDefault(x => x.InternalApiKey == token);
 
-            if (s == null) return null;
+            if (credentials == null)
+                return null;
 
-            return new ApiCredentials(s.KrakenApiKey, s.KrakenApiSecret);
+            return new ApiCredentials(credentials.KrakenApiKey, credentials.KrakenApiSecret);
         }
     }
 }
