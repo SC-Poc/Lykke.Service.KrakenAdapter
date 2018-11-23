@@ -80,7 +80,14 @@ namespace Lykke.Service.KrakenAdapter.Services
         {
             var request = new Dictionary<string, string> {{"txid", txid}};
 
-            return await Post<OrdersCanceled>("/0/private/CancelOrder", request);
+            try
+            {
+                return await Post<OrdersCanceled>("/0/private/CancelOrder", request);
+            }
+            catch (OrderNotFoundException)
+            {
+                return new OrdersCanceled {Count = 0};
+            }
         }
 
         public async Task<Dictionary<string, decimal>> GetBalances()
