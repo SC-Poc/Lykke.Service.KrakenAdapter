@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace Lykke.Service.KrakenAdapter.Settings
+namespace Lykke.Service.KrakenAdapter.Settings.ServiceSettings.TradingApi
 {
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public sealed class Credentials

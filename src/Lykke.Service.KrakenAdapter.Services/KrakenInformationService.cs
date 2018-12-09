@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lykke.Common.ExchangeAdapter;
 using Lykke.Common.Log;
+using Lykke.Service.KrakenAdapter.Core.Services;
 using Lykke.Service.KrakenAdapter.Services.Instruments;
 using Microsoft.Extensions.Hosting;
 
@@ -18,9 +19,9 @@ namespace Lykke.Service.KrakenAdapter.Services
 
         public Task<InstrumentsConverter> LatestConverter => Converter.FirstOrDefaultAsync().ToTask();
 
-        public KrakenInformationService(ILogFactory logFactory)
+        public KrakenInformationService(ISettingsService settingsService, ILogFactory logFactory)
         {
-            var client = new RestClient(logFactory);
+            var client = new RestClient(settingsService.GetApiRetrySettings(), logFactory);
 
             var instruments =
                 Observable.Interval(TimeSpan.FromMinutes(30))

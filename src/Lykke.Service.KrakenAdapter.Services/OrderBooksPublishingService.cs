@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Lykke.Common.ExchangeAdapter.Contracts;
 using Lykke.Common.ExchangeAdapter.Server;
 using Lykke.Common.Log;
+using Lykke.Service.KrakenAdapter.Core.Services;
 using Lykke.Service.KrakenAdapter.Services.Instruments;
 using Lykke.Service.KrakenAdapter.Services.KrakenContracts;
 using Microsoft.Extensions.Hosting;
@@ -26,10 +27,10 @@ namespace Lykke.Service.KrakenAdapter.Services
         private IDisposable _disposable;
         private InstrumentsConverter _converter;
 
-        public OrderBooksPublishingService(ILogFactory logFactory, KrakenOrderBookProcessingSettings settings)
+        public OrderBooksPublishingService(ISettingsService settingsService, ILogFactory logFactory, KrakenOrderBookProcessingSettings settings)
         {
             _logFactory = logFactory;
-            _restClient = new RestClient(_logFactory);
+            _restClient = new RestClient(settingsService.GetApiRetrySettings(), _logFactory);
             _settings = settings;
         }
 

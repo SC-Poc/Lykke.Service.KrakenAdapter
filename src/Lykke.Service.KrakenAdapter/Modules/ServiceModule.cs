@@ -1,5 +1,7 @@
 ﻿using Autofac;
 using JetBrains.Annotations;
+using Lykke.Service.KrakenAdapter.Core.Domain;
+using Lykke.Service.KrakenAdapter.Core.Services;
 using Lykke.Service.KrakenAdapter.Services;
 using Lykke.Service.KrakenAdapter.Settings;
 using Lykke.SettingsReader;
@@ -19,6 +21,15 @@ namespace Lykke.Service.KrakenAdapter.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
+            builder.RegisterType<SettingsService>()
+                .As<ISettingsService>()
+                .WithParameter(TypedParameter.From(new ApiRetrySettings
+                {
+                    Count = _appSettings.CurrentValue.KrakenAdapterService.TradingApi.Retry.Count,
+                    Delay = _appSettings.CurrentValue.KrakenAdapterService.TradingApi.Retry.Delay
+                }))
+                .SingleInstance();
+
             builder.RegisterType<OrderBooksPublishingService>()
                 .WithParameter(
                     new TypedParameter(

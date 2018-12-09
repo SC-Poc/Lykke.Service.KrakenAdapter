@@ -9,27 +9,35 @@ using Lykke.Common.ExchangeAdapter.Contracts;
 using Lykke.Common.ExchangeAdapter.Server;
 using Lykke.Common.ExchangeAdapter.Server.Fails;
 using Lykke.Common.Log;
+using Lykke.Service.KrakenAdapter.Core.Domain;
 using Lykke.Service.KrakenAdapter.Services.Instruments;
 using Lykke.Service.KrakenAdapter.Services.KrakenContracts;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Polly;
 
 namespace Lykke.Service.KrakenAdapter.Services
 {
     public sealed class RestClient
     {
+        private const string ApiUrl = "https://api.kraken.com";
+
+        private readonly ApiRetrySettings _apiRetrySettings;
         private readonly HttpClient _client;
 
-        public RestClient(ILogFactory logFactory, ApiCredentials credentials = null)
+        public RestClient(
+            ApiRetrySettings apiRetrySettings,
+            ILogFactory logFactory,
+            ApiCredentials credentials = null)
         {
+            _apiRetrySettings = apiRetrySettings;
+            
             var loggingHandler = new LoggingHandler(logFactory.CreateLog(this), new HttpClientHandler(),
                 "/0/public/Depth");
 
-            var auth = new AuthenticationHandler(credentials, loggingHandler);
-
-            _client = new HttpClient(auth)
+            _client = new HttpClient( new AuthenticationHandler(credentials, loggingHandler))
             {
-                BaseAddress = new Uri("https://api.kraken.com")
+                BaseAddress = new Uri(ApiUrl)
             };
         }
 
@@ -126,25 +134,41 @@ namespace Lykke.Service.KrakenAdapter.Services
             throw new ArgumentOutOfRangeException(nameof(tradeType), "Not supported (only buy/sell yet)");
         }
 
-        private async Task<T> Get<T>(string path)
+        private Task<T> Get<T>(string path)
         {
-            using (var msg = await _client.GetAsync(path))
-                return await ReadAsKrakenResponse<T>(msg);
+            return RunWithRetriesAsync(async () =>
+            {
+                using (var msg = await _client.GetAsync(path))
+                    return await ReadAsKrakenResponse<T>(msg);
+            }, _apiRetrySettings.Count, _apiRetrySettings.Delay);
         }
 
-        private async Task<T> Post<T>(string path, IEnumerable<KeyValuePair<string, string>> parameters)
+        private Task<T> Post<T>(string path, IEnumerable<KeyValuePair<string, string>> parameters)
         {
-            var content = new FormUrlEncodedContent(parameters);
-
-            using (var msg = await _client.PostAsync(path, content))
-                return await ReadAsKrakenResponse<T>(msg);
+            return RunWithRetriesAsync(async () =>
+            {
+                using (var msg = await _client.PostAsync(path, new FormUrlEncodedContent(parameters)))
+                    return await ReadAsKrakenResponse<T>(msg);
+            }, _apiRetrySettings.Count, _apiRetrySettings.Delay);
         }
 
-        private static async Task<T> ReadAsKrakenResponse<T>(HttpResponseMessage msg)
+        private static Task<T> RunWithRetriesAsync<T>(Func<Task<T>> method, int retriesCount, int delay)
         {
-            msg.EnsureSuccessStatusCode();
+            return Policy
+                .Handle<KrakenApiRequestException>(exception => exception.HttpStatusCode == HttpStatusCode.BadGateway)
+                .WaitAndRetryAsync(retriesCount, attempt => TimeSpan.FromMilliseconds(delay))
+                .ExecuteAsync(async () => await method());
+        }
 
-            var response = await msg.Content.ReadAsAsync<KrakenResponse<T>>();
+        private static async Task<T> ReadAsKrakenResponse<T>(HttpResponseMessage response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new KrakenApiRequestException(response.StatusCode,
+                    $"Response status code does not indicate success: {(int) response.StatusCode} ({response.StatusCode})");
+            }
+
+            var data = await response.Content.ReadAsAsync<KrakenResponse<T>>();
 
             var errorMap = new Dictionary<string, Func<string, Exception>>
             {
@@ -155,18 +179,18 @@ namespace Lykke.Service.KrakenAdapter.Services
                 {"EOrder:Invalid price", s => new InvalidOrderPriceException(s)}
             };
 
-            if (!response.Errors.Any())
-                return response.Result;
+            if (!data.Errors.Any())
+                return data.Result;
 
             foreach (KeyValuePair<string, Func<string, Exception>> pair in errorMap)
             {
-                string error = response.Errors.FirstOrDefault(x => x.StartsWith(pair.Key));
+                string error = data.Errors.FirstOrDefault(x => x.StartsWith(pair.Key));
 
                 if (error != null)
                     throw pair.Value(pair.Key);
             }
 
-            throw new KrakenApiException(response.Errors);
+            throw new KrakenApiException(data.Errors);
         }
 
         #region Nested classes

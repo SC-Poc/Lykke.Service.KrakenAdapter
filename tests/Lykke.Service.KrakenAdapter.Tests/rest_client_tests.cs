@@ -9,6 +9,7 @@ using Lykke.Common.ExchangeAdapter.Contracts;
 using Lykke.Common.Log;
 using Lykke.Logs;
 using Lykke.Logs.Loggers.LykkeConsole;
+using Lykke.Service.KrakenAdapter.Core.Domain;
 using Lykke.Service.KrakenAdapter.Services;
 using Lykke.Service.KrakenAdapter.Services.Instruments;
 using Newtonsoft.Json;
@@ -24,7 +25,7 @@ namespace Lykke.Service.KrakenAdapter.Tests
 
             _lf = LogFactory.Create().AddUnbufferedConsole();
 
-            Client = new RestClient(_lf, new ApiCredentials("", ""));
+            Client = new RestClient(new ApiRetrySettings(),  _lf, new ApiCredentials("", ""));
             Converter = new InstrumentsConverter(Client.GetInstruments().Result);
         }
 
