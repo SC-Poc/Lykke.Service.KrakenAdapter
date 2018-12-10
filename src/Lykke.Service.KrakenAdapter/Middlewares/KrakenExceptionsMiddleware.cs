@@ -3,10 +3,11 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Lykke.Service.KrakenAdapter.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
-namespace Lykke.Service.KrakenAdapter.Services
+namespace Lykke.Service.KrakenAdapter.Middlewares
 {
     public static class KrakenExceptionsMiddleware
     {
@@ -21,9 +22,13 @@ namespace Lykke.Service.KrakenAdapter.Services
             {
                 await next();
             }
-            catch (KrakenApiException ex)
+            catch (KrakenApiException exception)
             {
-                Respond(httpContext, HttpStatusCode.InternalServerError, ex.Message);
+                Respond(httpContext, HttpStatusCode.InternalServerError, exception.Message);
+            }
+            catch (KrakenApiRequestException exception)
+            {
+                Respond(httpContext, HttpStatusCode.InternalServerError, exception.Message);
             }
         }
 

@@ -3,8 +3,11 @@ using System.Linq;
 using Lykke.Common.ExchangeAdapter.Server;
 using Lykke.Common.Log;
 using Lykke.Sdk;
+using Lykke.Service.KrakenAdapter.Core.Services;
+using Lykke.Service.KrakenAdapter.Middlewares;
 using Lykke.Service.KrakenAdapter.Services;
 using Lykke.Service.KrakenAdapter.Settings;
+using Lykke.Service.KrakenAdapter.Settings.ServiceSettings.TradingApi;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -38,6 +41,7 @@ namespace Lykke.Service.KrakenAdapter
         {
             var settings = app.ApplicationServices.GetService<TradingApiSettings>();
             var logFactory = app.ApplicationServices.GetService<ILogFactory>();
+            var settingsService = app.ApplicationServices.GetService<ISettingsService>();
 
             XApiKeyAuthAttribute.Credentials =
                 settings.Credentials.ToDictionary(x => x.InternalApiKey, x => (object) x);
@@ -48,7 +52,8 @@ namespace Lykke.Service.KrakenAdapter
 
                 options.WithMiddleware = x =>
                 {
-                    x.UseAuthenticationMiddleware(token => new RestClient(logFactory, GetCredentials(settings, token)));
+                    x.UseAuthenticationMiddleware(token => new RestClient(settingsService.GetApiRetrySettings(),
+                        logFactory, GetCredentials(settings, token)));
                     x.UseHandleBusinessExceptionsMiddleware();
                     x.UseForwardKrakenExceptionsMiddleware();
                 };
