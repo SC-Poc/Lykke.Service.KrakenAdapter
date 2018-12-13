@@ -43,8 +43,10 @@ KrakenAdapterService:
       settings-key: KrakenAdapterService-TradingApi-Credentials
       types: [ JsonArray ]      
     Retry:
-      Count: KrakenAdapterService-TradingApi-Retry-Count
-      Delay: KrakenAdapterService-TradingApi-Retry-Delay
+      Count:
+        settings-key: KrakenAdapterService-TradingApi-Retry-Count
+      Delay:
+        settings-key: KrakenAdapterService-TradingApi-Retry-Delay
       
 SlackNotifications:
   AzureQueue:
