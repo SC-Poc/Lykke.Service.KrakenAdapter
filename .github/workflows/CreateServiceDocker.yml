@@ -18,7 +18,7 @@ jobs:
     - name: Test
       run: dotnet test --configuration Release
     - name: Publish
-      run: dotnet publish ./src/Lykke.Service.KrakenAdapter/Lykke.Service.KrakenAdapter.csproj --output ./publish --configuration Release /p:AssemblyVersion=1.0.0
+      run: dotnet publish ./src/Lykke.Service.KrakenAdapter/Lykke.Service.KrakenAdapter.csproj --output ../../publish --configuration Release /p:AssemblyVersion=1.0.0
     - name: Check dir
       run: ls ./publish
     - name: Publish to Registry
