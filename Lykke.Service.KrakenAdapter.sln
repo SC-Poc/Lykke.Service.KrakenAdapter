@@ -15,11 +15,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		README.md = README.md
-		settings.txt = settings.txt
-		settings.yaml = settings.yaml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.KrakenAdapter.Tests", "tests\Lykke.Service.KrakenAdapter.Tests\Lykke.Service.KrakenAdapter.Tests.csproj", "{A61FFDEE-5725-4650-A788-6E55EE5EFD5B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{49097535-5E42-45B5-8677-31621FE15517}"
+ProjectSection(SolutionItems) = preProject
+	.github\workflows\CreateServiceDocker.yml = .github\workflows\CreateServiceDocker.yml
+	.github\workflows\ValidateCommit.yml = .github\workflows\ValidateCommit.yml
+EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
